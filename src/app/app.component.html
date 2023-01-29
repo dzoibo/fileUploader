@@ -37,8 +37,7 @@
 
     <div class="content">
           <div class="preview-img">
-              <span  *ngIf="!fileIsSelected" (click)="chooseFile()"
-                >Cliquer
+              <span  *ngIf="!fileUploading" (click)="chooseFile()">Cliquer
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -54,8 +53,10 @@
                 </svg>
                 pour importer un fichier.
               </span>
-              <i *ngIf="!fileIsSelected" click="chooseFile()" class="fa-solid fa-arrow-up-from-bracket"></i>
-              <i *ngIf="fileIsSelected" class="fa-solid fa-file"></i>
+              <span *ngIf="fileIsUploaded">Fichier importé avec success</span>
+              <i *ngIf="!fileIsSelected && !fileUploading" (click)="chooseFile()" class="fa-solid fa-arrow-up-from-bracket"></i>
+              <i *ngIf="fileIsSelected " class="fa-solid fa-file"></i>
+              <i id="done"  *ngIf="fileIsUploaded" class="fa-regular fa-circle-check"></i>
               <div>
                 <div></div>
               </div>
@@ -72,13 +73,20 @@
               <div>{{selectedFile.name}}</div>
               <div >{{convertSize(selectedFile.size)}}</div>
             </div>
+            <div id="progressBar" *ngIf="fileUploading">
+              <div>
+                <span [style.width]="progressPercent+'%'"></span>
+              </div>
+              <span id="progressPercent">{{progressPercent}}%</span>
+            </div>
             <div id="button-container">
-              <button (click)="chooseFile()" class="choose-img">
+              <button (click)="chooseFile()" *ngIf="!fileUploading"  class="choose-img">
                 <span *ngIf="!fileIsSelected">Importer un fichier</span>
                 <span *ngIf="fileIsSelected">Changer le fichier</span>
               </button>
               <button *ngIf="fileIsSelected" (click)="saveFile()" class="save-img">
-                {{textBtnSave}}
+                <span *ngIf="!fileUploading">Sauvergarder</span>
+                <span *ngIf="fileUploading">En cours...</span>
               </button>
             </div>
           </div>

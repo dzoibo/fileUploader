@@ -9,6 +9,27 @@
   flex-direction: column;
 }
 
+#progressBar{
+  width: 100%;
+  min-width: 202px;
+  height: 5px;
+  margin: 16px 0px 16px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  div{
+   flex-grow: 1;
+   margin-right: 10px;
+   border:1px solid lightslategray;
+   border-radius: 5px;
+   span{
+    height: 5px;
+    display: block;
+    background-color: var(--first-color);
+   }
+  }
+   
+ }
 .home {
   width: 850px;
   padding: 5px;
@@ -45,6 +66,11 @@
     border:1px solid lightgray;
     padding: 16px;
     margin-top:32px
+  }
+  #done{
+    color:var(--first-color);
+    border:0px;
+
   }
 }
 
@@ -134,7 +160,6 @@
 
   .controls .row {
     width: 100%;
-    border: 1px solid red;
   }
 
   .controls .row .save-img {
@@ -279,9 +304,11 @@
     margin-bottom: 24px;
     font-size: 20px;
     div:nth-child(1){
+      word-break: break-all;
       font-family:fangsong;
       font-weight: 500;
       font-size: 24px;
     }
     
   }
+ 

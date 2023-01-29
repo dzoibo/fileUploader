@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import * as AWS from 'aws-sdk';
+import { Body } from 'aws-sdk/clients/s3';
+import { CredentialsOptions } from 'aws-sdk/lib/credentials';
 
 @Component({
   selector: 'app-root',
@@ -7,16 +10,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit {
   title = 'uploader';
-  
-  currentImage= require("../assets/img/card-image.svg");
-  textBtnSave= "Sauvegarder";
   fileInput!: HTMLInputElement;
   previewImage!: HTMLInputElement;
-  fileIsSelected!: boolean;
+  fileIsSelected=false;
   bascule= false;
   dark__theme= "dark-theme";
   theme= "dark";
   selectedFile!: File;
+  isConfigUpdate=false;
+  reader! : FileReader;
+  fileUploading=false;
+  progressPercent=0;
+  fileIsUploaded=false;
+
 
   ngOnInit(): void {
     this.modeButton();
@@ -76,13 +82,11 @@ export class AppComponent implements OnInit {
       updateFile(event: Event) {
         this.fileIsSelected=true;
         const target= event.target as HTMLInputElement;
-        this.selectedFile= (target.files as FileList)[0];
-        if (this.selectedFile===null || this.selectedFile === undefined){
+        if ((target.files as FileList)[0]===null || (target.files as FileList)[0] === undefined){
           return;
         }
-        console.log(this.selectedFile,'Mon fichier');
+        this.selectedFile= (target.files as FileList)[0];
         this.loadingImage();
-        this.currentImage = URL.createObjectURL(this.selectedFile); // Url de l'image
       }
   
       loadingImage() {
@@ -92,9 +96,83 @@ export class AppComponent implements OnInit {
       }
   
 
-      saveFile() {
-        this.textBtnSave = "En cours...";
+      async saveFile() {
+      this.fileUploading=true;
+      await this.uploadMedia();
+      this.fileIsUploaded=true;
+      this.fileIsSelected=false;
+      setTimeout((()=>{
+      this.fileIsUploaded=false;
+      this.progressPercent=0;
+      this.fileUploading=false
+      }),2000)
       }
   
-     
+      /**
+       * this function is to upload to  
+       */
+     async uploadToS3Bucket(stream: Body, credential: CredentialsOptions,cd: { (progress: any): void; (arg0: Promise<number>): void; }){
+      try {
+        
+        if (!this.isConfigUpdate) {
+           AWS.config.update(({ region: 'us-east-1'}));
+            this.isConfigUpdate = true;
+        }
+
+        let s3 = new AWS.S3({
+          apiVersion: '2006-03-01',
+            region: 'us-east-1',
+            credentials: new AWS.Credentials({
+                accessKeyId: credential.accessKeyId,
+                secretAccessKey: credential.secretAccessKey,
+            })
+        });
+        let uploadItem = await s3.upload({
+            Bucket: 'ngx-file-manager',
+            Key: this.selectedFile.name,// name for the bucket file
+            ContentType: this.selectedFile.type,
+            Body: stream
+        }).on("httpUploadProgress",  progress => {
+            cd(this.getUploadingProgress(progress.loaded, progress.total));
+        }).promise();
+        console.log("uploadItem=>", uploadItem);
+        return uploadItem;
+        
+    }
+    catch (error) {
+        console.log(error)
+    }
+     }
+     async getUploadingProgress(uploadSize: number,totalSize: number){
+      let uploadProgress = (uploadSize / totalSize) * 100;
+      this.progressPercent= Number(uploadProgress.toFixed(0));
+      return this.progressPercent;
+  }
+     /**
+      * use to confure file to make it ready to load bzy the browser
+      */
+     async uploadMedia(){
+      const credentialRequest={
+        accessKeyId:'AKIA4LZ3AV2EWMOCZQUY',
+        secretAccessKey: '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',
+      }
+      const mediaStreamRequest = this.getFile(this.selectedFile);
+      const [mediaStream]=await Promise.all([mediaStreamRequest]);
+      await this.uploadToS3Bucket(mediaStream,credentialRequest,progress=>{
+        console.log(progress); 
+      });
+      
+     }
+     async getFile(file: File){
+      return new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=(e)=>{
+          resolve(e.target?.result);
+        };
+        reader.onerror=(err)=>{
+          reject(false);
+        };
+        reader.readAsArrayBuffer(file);
+      });
+     }
 }
