@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import * as AWS from 'aws-sdk';
-import { Body } from 'aws-sdk/clients/s3';
-import { CredentialsOptions } from 'aws-sdk/lib/credentials';
+import { NgxFileManagerService } from 'ngx-file-manager/lib/ngx-file-manager.service';
+import { UploadServiceService } from 'ngx-file-manager/lib/upload-service.service';
 
 @Component({
   selector: 'app-root',
@@ -17,13 +16,16 @@ export class AppComponent implements OnInit {
   dark__theme= "dark-theme";
   theme= "dark";
   selectedFile!: File;
-  isConfigUpdate=false;
   reader! : FileReader;
   fileUploading=false;
   progressPercent=0;
   fileIsUploaded=false;
 
-
+constructor(private ngxFileManagerService: NgxFileManagerService, private uploadServiceService: UploadServiceService){
+  this.uploadServiceService.$progress.subscribe(value=>{
+    this.progressPercent=value;
+  })
+}
   ngOnInit(): void {
     this.modeButton();
     this.fileInput=document.querySelector(".input-image") as HTMLInputElement;
@@ -86,19 +88,11 @@ export class AppComponent implements OnInit {
           return;
         }
         this.selectedFile= (target.files as FileList)[0];
-        this.loadingImage();
       }
   
-      loadingImage() {
-        document.querySelector(".preview-img img")?.addEventListener("load",()=> {
-        document.querySelector(".home")?.classList.remove("disabel");
-          });
-      }
-  
-
       async saveFile() {
       this.fileUploading=true;
-      await this.uploadMedia();
+      await this.uploadServiceService.uploadMedia(this.selectedFile,'AKIA4LZ3AV2EWMOCZQUY','sTPrPsDnoCO6EKrmSGSQJVKvR9oj2hHoZz7b5Uzz','ngx-file-manager','us-east-1');
       this.fileIsUploaded=true;
       this.fileIsSelected=false;
       setTimeout((()=>{
@@ -107,72 +101,4 @@ export class AppComponent implements OnInit {
       this.fileUploading=false
       }),2000)
       }
-  
-      /**
-       * this function is to upload to  
-       */
-     async uploadToS3Bucket(stream: Body, credential: CredentialsOptions,cd: { (progress: any): void; (arg0: Promise<number>): void; }){
-      try {
-        
-        if (!this.isConfigUpdate) {
-           AWS.config.update(({ region: 'us-east-1'}));
-            this.isConfigUpdate = true;
-        }
-
-        let s3 = new AWS.S3({
-          apiVersion: '2006-03-01',
-            region: 'us-east-1',
-            credentials: new AWS.Credentials({
-                accessKeyId: credential.accessKeyId,
-                secretAccessKey: credential.secretAccessKey,
-            })
-        });
-        let uploadItem = await s3.upload({
-            Bucket: 'ngx-file-manager',
-            Key: this.selectedFile.name,// name for the bucket file
-            ContentType: this.selectedFile.type,
-            Body: stream
-        }).on("httpUploadProgress",  progress => {
-            cd(this.getUploadingProgress(progress.loaded, progress.total));
-        }).promise();
-        console.log("uploadItem=>", uploadItem);
-        return uploadItem;
-        
-    }
-    catch (error) {
-        console.log(error)
-    }
-     }
-     async getUploadingProgress(uploadSize: number,totalSize: number){
-      let uploadProgress = (uploadSize / totalSize) * 100;
-      this.progressPercent= Number(uploadProgress.toFixed(0));
-      return this.progressPercent;
-  }
-     /**
-      * use to confure file to make it ready to load bzy the browser
-      */
-     async uploadMedia(){
-      const credentialRequest={
-        accessKeyId:'AKIA4LZ3AV2EWMOCZQUY',
-        secretAccessKey: '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',
-      }
-      const mediaStreamRequest = this.getFile(this.selectedFile);
-      const [mediaStream]=await Promise.all([mediaStreamRequest]);
-      await this.uploadToS3Bucket(mediaStream,credentialRequest,progress=>{
-        console.log(progress); 
-      });
-      
-     }
-     async getFile(file: File){
-      return new Promise((resolve,reject)=>{
-        const reader=new FileReader();
-        reader.onload=(e)=>{
-          resolve(e.target?.result);
-        };
-        reader.onerror=(err)=>{
-          reject(false);
-        };
-        reader.readAsArrayBuffer(file);
-      });
-     }
 }
