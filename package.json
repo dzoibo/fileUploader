@@ -18,7 +18,7 @@
     "@angular/platform-browser": "^14.2.0",
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
-    "@dzoibo/ngx-file-manager": "file:dzoibo-ngx-file-manager-1.0.4.tgz",
+    "@dzoibo/ngx-file-manager": "file:dzoibo-ngx-file-manager-1.0.6.tgz",
     "aws-sdk": "^2.1304.0",
     "lottie-web": "^5.10.2",
     "ngx-file-manager": "file:ngx-file-manager-1.0.2.tgz",

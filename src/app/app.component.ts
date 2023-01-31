@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgxFileManagerService } from 'ngx-file-manager/lib/ngx-file-manager.service';
-import { UploadServiceService } from 'ngx-file-manager/lib/upload-service.service';
-
+import { NgxFileManagerService } from 'ngx-file-manager';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -21,8 +19,8 @@ export class AppComponent implements OnInit {
   progressPercent=0;
   fileIsUploaded=false;
 
-constructor(private ngxFileManagerService: NgxFileManagerService, private uploadServiceService: UploadServiceService){
-  this.uploadServiceService.$progress.subscribe(value=>{
+constructor(private ngxFileManagerService: NgxFileManagerService){
+  this.ngxFileManagerService.$progress.subscribe(value=>{
     this.progressPercent=value;
   })
 }
@@ -92,7 +90,7 @@ constructor(private ngxFileManagerService: NgxFileManagerService, private upload
   
       async saveFile() {
       this.fileUploading=true;
-      await this.uploadServiceService.uploadMedia(this.selectedFile,'AKIA4LZ3AV2EWMOCZQUY','sTPrPsDnoCO6EKrmSGSQJVKvR9oj2hHoZz7b5Uzz','ngx-file-manager','us-east-1');
+      await this.ngxFileManagerService.uploadMedia(this.selectedFile,'AKIA4LZ3AV2EWMOCZQUY','sTPrPsDnoCO6EKrmSGSQJVKvR9oj2hHoZz7b5Uzz','ngx-file-manager','us-east-1');
       this.fileIsUploaded=true;
       this.fileIsSelected=false;
       setTimeout((()=>{

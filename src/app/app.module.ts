@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { UploadServiceService } from 'ngx-file-manager/lib/upload-service.service';
+import { NgxFileManagerService } from 'ngx-file-manager';
 import { AppComponent } from './app.component';
 
 @NgModule({
@@ -10,7 +10,7 @@ import { AppComponent } from './app.component';
   imports: [
     BrowserModule,
   ],
-  providers: [UploadServiceService],
+  providers: [NgxFileManagerService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
